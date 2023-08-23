@@ -3,7 +3,7 @@ reading data from a Vicon motion capture system.
 
 > ***Special Thanks*** to the
 > [Novel Engineering of Swarm Technology](https://nestlab.net/) (**NEST**) lab
-> at Worcester Polytechnic Instute
+> at Worcester Polytechnic Institute
 > for providing a reference usage of the Vicon APIs, and 
 > providing us with access to their Vicon systems for testing this crate.
 
@@ -46,9 +46,9 @@ available on your `LD_LIBRARY_PATH`.
 
 Copyright 2023 Alicorn Systems, Inc.
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License. Refer
-to [the license file](LICENSE.txt) for more information.
+Licensed under the GNU Affero General Public License version 3,
+as published by the Free Software Foundation. Refer to 
+[the license file](LICENSE.txt) for more information.
 
 The files within `vendor/` retain their original copyrights
 and licenses, and are included in this repository to simplify
