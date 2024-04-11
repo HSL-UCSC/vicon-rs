@@ -1,7 +1,16 @@
 [package]
 name = "vicon-sys"
+description = "APIs for reading data from a Vicon motion capture system."
 version = "0.1.0"
 edition = "2021"
+homepage = "https://gitlab.com/alicorn/pub/vicon-sys"
+repository = "https://gitlab.com/alicorn/pub/vicon-sys"
+readme = "README.md"
+license = "AGPL-3.0-only"
+authors = [
+    "Brandon Sanders",
+    "Alicorn Systems, Inc. (hello@alicorn.systems)",
+]
 
 [dependencies]
 
