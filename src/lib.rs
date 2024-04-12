@@ -19,20 +19,13 @@ pub struct ViconSubject {
     /// The subject's name.
     pub name: String,
 
-    /// The subject's in cartesian space.
+    /// The subject's position in meters
+    /// relative to the origin of the
+    /// motion capture volume.
     pub origin: Vector3D,
 
-    /// TODO: Should the subject instead
-    ///       have its quaternion instead
-    ///       of these values?
-    ///
-    /// The subject's yaw, pitch, and roll
-    /// in space, derived from its rotational
-    /// quaternion.
-    ///
-    /// The axes correspond to the subject's
-    /// yaw ([`Vector3D::x`]), pitch ([`Vector3D::y`]),
-    /// and roll ([`Vector3D::z`]),
+    /// The subject's rotation (euler angles)
+    /// in radians.
     pub rotation: Vector3D,
 }
 

@@ -163,13 +163,13 @@ impl HasViconHardware for ViconSystem {
             }
 
             // Get the segment's rotation.
-            let mut segment_rotation = COutput_GetSegmentGlobalRotationQuaternion {
+            let mut segment_rotation = COutput_GetSegmentGlobalRotationEulerXYZ {
                 Result: CResult_UnknownResult as i32,
-                Rotation: [0.0f64; 4],
+                Rotation: [0.0f64; 3],
                 Occluded: -1,
             };
             unsafe {
-                Client_GetSegmentGlobalRotationQuaternion(
+                Client_GetSegmentGlobalRotationEulerXYZ(
                     self.vicon_handle,
                     subject_name.as_ptr(),
                     segment_name.as_ptr(),
@@ -190,7 +190,7 @@ impl HasViconHardware for ViconSystem {
             ));
         }
 
-        todo!()
+        Ok(subjects)
     }
 }
 
@@ -202,28 +202,13 @@ impl ViconSubject {
     fn from_vicon_frame(
         name: String,
         translation: COutput_GetSegmentGlobalTranslation,
-        rotation: COutput_GetSegmentGlobalRotationQuaternion,
+        rotation: COutput_GetSegmentGlobalRotationEulerXYZ,
     ) -> Self {
-        // Calculate origins.
+        // Calculate origins, converting from
+        // millimeters to meters.
         let origin_x = translation.Translation[0] / 1000.0;
         let origin_y = translation.Translation[1] / 1000.0;
         let origin_z = translation.Translation[2] / 1000.0;
-
-        // Extract quaternion axes.
-        let q_x = rotation.Rotation[0];
-        let q_y = rotation.Rotation[1];
-        let q_z = rotation.Rotation[2];
-        let q_w = rotation.Rotation[3];
-
-        // Convert quaternion to yaw, pitch, and roll values.
-        // https://stackoverflow.com/a/18115837
-        let yaw = (2.0 * (q_y * q_z + q_w * q_x))
-            .atan2(q_w * q_w - q_x * q_x - q_y * q_y + q_z * q_z)
-            * 1000.0;
-        let pitch = (-2.0 * (q_x * q_z - q_w * q_y)).asin() * 1000.0;
-        let roll = (2.0 * (q_x * q_y + q_w * q_z))
-            .atan2(q_w * q_w + q_x * q_x - q_y * q_y - q_z * q_z)
-            * 1000.0;
 
         Self {
             name,
@@ -233,9 +218,9 @@ impl ViconSubject {
                 z: origin_z,
             },
             rotation: Vector3D {
-                x: yaw,
-                y: pitch,
-                z: roll,
+                x: rotation.Rotation[0],
+                y: rotation.Rotation[1],
+                z: rotation.Rotation[2],
             },
         }
     }
