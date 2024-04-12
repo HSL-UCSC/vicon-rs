@@ -44,7 +44,7 @@ available on your `LD_LIBRARY_PATH`.
 
 ## License and Contributions
 
-Copyright 2023 Alicorn Systems, Inc.
+Copyright 2024 Alicorn Systems, Inc.
 
 Licensed under the GNU Affero General Public License version 3,
 as published by the Free Software Foundation. Refer to 
