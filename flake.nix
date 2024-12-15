@@ -27,10 +27,8 @@
 
       # Optional shellHook to fetch dependencies when entering the shell
       shellHook = ''
-        export GIT_CONFIG=$PWD/.gitconfig
         export CARGO_NET_GIT_FETCH_WITH_CLI=true
-        export GIT_SSH_COMMAND="ssh -F ~/.ssh/config"  # Ensure it uses your SSH config
-        export LD_LIBRARY_PATH=${PWD}/vendor/libvicon:$LD_LIBRARY_PATH
+        # export LD_LIBRARY_PATH=$PWD/vendor/libvicon:$LD_LIBRARY_PATH
         echo "LD_LIBRARY_PATH is set to: $LD_LIBRARY_PATH"
         # Start Zsh if not already the active shell
         if [ "$SHELL" != "$(command -v zsh)" ]; then
