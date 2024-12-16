@@ -1,4 +1,6 @@
+use nalgebra::{UnitQuaternion, Vector3};
 use snafu::Snafu;
+pub mod sys;
 
 #[cfg(target_os = "linux")]
 /// Implementations of [`HasViconHardware`]
@@ -9,7 +11,10 @@ pub mod sys;
 pub trait HasViconHardware {
     /// Returns a list of all identified [`ViconSubject`]s
     /// in the next available frame from the system.
-    fn read_frame_subjects(&mut self) -> Result<Vec<ViconSubject>, ViconError>;
+    fn read_frame_subjects(
+        &mut self,
+        rotation_type: RotationType,
+    ) -> Result<Vec<ViconSubject>, ViconError>;
 }
 
 /// A single subject identified in a frame
@@ -22,24 +27,17 @@ pub struct ViconSubject {
     /// The subject's position in meters
     /// relative to the origin of the
     /// motion capture volume.
-    pub origin: Vector3D,
+    pub origin: Vector3<f64>,
 
     /// The subject's rotation (euler angles)
     /// in radians.
-    pub rotation: Vector3D,
+    pub rotation: RotationType,
 }
 
-/// A three-dimensional vector of data.
 #[derive(Debug)]
-pub struct Vector3D {
-    /// The X-axis (1st dimension).
-    pub x: f64,
-
-    /// The Y-axis (2nd dimension).
-    pub y: f64,
-
-    /// The Z-axis (3rd dimension).
-    pub z: f64,
+pub enum RotationType {
+    Euler(Vector3<f64>),
+    Quaternion(UnitQuaternion<f64>),
 }
 
 /// Enumeration of errors returned by a
@@ -47,9 +45,13 @@ pub struct Vector3D {
 #[derive(Debug, Snafu)]
 pub enum ViconError {
     /// An error from the Vicon SDK.
-    SdkError { source: ViconSdkStatus },
+    SdkError {
+        source: ViconSdkStatus,
+    },
+    OtherError {
+        message: String,
+    },
 }
-
 /// Implementation of [`TryFrom`] which
 /// returns `Ok` for _successful_
 /// [`ViconSdkStatus`] codes, and `Err`

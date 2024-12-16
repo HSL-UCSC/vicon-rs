@@ -4,7 +4,8 @@
 
 use std::{thread, time::Duration};
 
-use crate::{HasViconHardware, Vector3D, ViconError, ViconSdkStatus, ViconSubject};
+use crate::{HasViconHardware, RotationType, ViconError, ViconSdkStatus, ViconSubject};
+use nalgebra::{Quaternion, UnitQuaternion, Vector3};
 
 include!(concat!(env!("OUT_DIR"), "/libvicon.rs"));
 
@@ -76,7 +77,10 @@ impl ViconSystem {
 }
 
 impl HasViconHardware for ViconSystem {
-    fn read_frame_subjects(&mut self) -> Result<Vec<crate::ViconSubject>, ViconError> {
+    fn read_frame_subjects(
+        &mut self,
+        rotation: RotationType,
+    ) -> Result<Vec<ViconSubject>, ViconError> {
         // Get a new frame.
         let _: ViconError = unsafe { Client_GetFrame(self.vicon_handle).try_into()? };
 
@@ -163,23 +167,43 @@ impl HasViconHardware for ViconSystem {
             }
 
             // Get the segment's rotation.
-            let mut segment_rotation = COutput_GetSegmentGlobalRotationEulerXYZ {
-                Result: CResult_UnknownResult as i32,
-                Rotation: [0.0f64; 3],
-                Occluded: -1,
+            let mut segment_rotation: ViconRotationType = match rotation {
+                RotationType::Quaternion(quaternion) => unsafe {
+                    let mut segment_rotation = COutput_GetSegmentGlobalRotationQuaternion {
+                        Result: CResult_UnknownResult as i32,
+                        Rotation: [0.0f64; 4],
+                        Occluded: -1,
+                    };
+                    Client_GetSegmentGlobalRotationQuaternion(
+                        self.vicon_handle,
+                        subject_name.as_ptr(),
+                        segment_name.as_ptr(),
+                        &mut segment_rotation,
+                    );
+                    ViconRotationType::Quaternion(segment_rotation)
+                },
+                RotationType::Euler(euler) => {
+                    let mut segment_rotation = COutput_GetSegmentGlobalRotationEulerXYZ {
+                        Result: CResult_UnknownResult as i32,
+                        Rotation: [0.0f64; 3],
+                        Occluded: -1,
+                    };
+                    unsafe {
+                        Client_GetSegmentGlobalRotationEulerXYZ(
+                            self.vicon_handle,
+                            subject_name.as_ptr(),
+                            segment_name.as_ptr(),
+                            &mut segment_rotation,
+                        );
+                    }
+                    ViconRotationType::Euler(segment_rotation)
+                }
             };
-            unsafe {
-                Client_GetSegmentGlobalRotationEulerXYZ(
-                    self.vicon_handle,
-                    subject_name.as_ptr(),
-                    segment_name.as_ptr(),
-                    &mut segment_rotation,
-                );
-            }
-            let _: ViconError = segment_rotation.Result.try_into()?;
+
+            let _: ViconError = segment_rotation.result().try_into()?;
 
             // Skip occluded segments.
-            if segment_rotation.Occluded != 0 {
+            if segment_rotation.occulded() {
                 continue;
             }
 
@@ -187,9 +211,8 @@ impl HasViconHardware for ViconSystem {
                 subject_name.to_str().unwrap().to_owned(),
                 segment_translation,
                 segment_rotation,
-            ));
+            )?);
         }
-
         Ok(subjects)
     }
 }
@@ -202,26 +225,64 @@ impl ViconSubject {
     fn from_vicon_frame(
         name: String,
         translation: COutput_GetSegmentGlobalTranslation,
-        rotation: COutput_GetSegmentGlobalRotationEulerXYZ,
-    ) -> Self {
+        vicon_rotation: ViconRotationType,
+    ) -> Result<Self, ViconError> {
         // Calculate origins, converting from
         // millimeters to meters.
         let origin_x = translation.Translation[0] / 1000.0;
         let origin_y = translation.Translation[1] / 1000.0;
         let origin_z = translation.Translation[2] / 1000.0;
 
-        Self {
+        Ok(Self {
             name,
-            origin: Vector3D {
-                x: origin_x,
-                y: origin_y,
-                z: origin_z,
-            },
-            rotation: Vector3D {
-                x: rotation.Rotation[0],
-                y: rotation.Rotation[1],
-                z: rotation.Rotation[2],
-            },
+            origin: Vector3::<f64>::new(origin_x, origin_y, origin_z),
+            rotation: RotationType::try_from(vicon_rotation).map_err(|e| {
+                ViconError::OtherError {
+                    message: e.to_string(),
+                }
+            })?,
+        })
+    }
+}
+
+pub enum ViconRotationType {
+    Euler(COutput_GetSegmentGlobalRotationEulerXYZ),
+    Quaternion(COutput_GetSegmentGlobalRotationQuaternion),
+}
+
+impl ViconRotationType {
+    pub fn occulded(&self) -> bool {
+        match self {
+            ViconRotationType::Euler(euler) => euler.Occluded != 0,
+            ViconRotationType::Quaternion(quaternion) => quaternion.Occluded != 0,
+        }
+    }
+
+    pub fn result(&self) -> i32 {
+        match self {
+            ViconRotationType::Euler(euler) => euler.Result,
+            ViconRotationType::Quaternion(quaternion) => quaternion.Result,
+        }
+    }
+}
+
+impl TryFrom<ViconRotationType> for RotationType {
+    type Error = String;
+    fn try_from(value: ViconRotationType) -> Result<Self, Self::Error> {
+        match value {
+            ViconRotationType::Euler(euler) => {
+                let euler = Vector3::new(euler.Rotation[0], euler.Rotation[1], euler.Rotation[2]);
+                return Ok(Self::Euler(euler));
+            }
+            ViconRotationType::Quaternion(quaternion) => {
+                let quaternion = UnitQuaternion::from_quaternion(Quaternion::new(
+                    quaternion.Rotation[0],
+                    quaternion.Rotation[1],
+                    quaternion.Rotation[2],
+                    quaternion.Rotation[3],
+                ));
+                return Ok(Self::Quaternion(quaternion));
+            }
         }
     }
 }
