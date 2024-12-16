@@ -7,12 +7,13 @@ homepage = "https://gitlab.com/alicorn/pub/vicon-sys"
 repository = "https://gitlab.com/alicorn/pub/vicon-sys"
 readme = "README.md"
 license = "AGPL-3.0-only"
-authors = [
-    "Brandon Sanders",
-    "Alicorn Systems, Inc. (hello@alicorn.systems)",
-]
+authors = ["Brandon Sanders", "Alicorn Systems, Inc. (hello@alicorn.systems)"]
+
+[toolchain]
+channel = "1.83.0"
 
 [dependencies]
+nalgebra = "0.33.2"
 
 # Error handling.
 snafu = { version = "0.7.1", default-features = false }
