@@ -17,7 +17,7 @@
       buildInputs = [
         pkgs.clang
         pkgs.cmake
-        pkgs.rust
+        pkgs.rustup
         pkgs.zsh
       ];
 
@@ -28,15 +28,17 @@
       # Optional shellHook to fetch dependencies when entering the shell
       shellHook = ''
         export CARGO_NET_GIT_FETCH_WITH_CLI=true
-        # export LD_LIBRARY_PATH=$PWD/vendor/libvicon:$LD_LIBRARY_PATH
+        export LD_LIBRARY_PATH=$PWD/vendor/libvicon:$LD_LIBRARY_PATH
         echo "LD_LIBRARY_PATH is set to: $LD_LIBRARY_PATH"
+        echo "Entering Rust development environment..."
+        rustup install 1.83.0
         # Start Zsh if not already the active shell
         if [ "$SHELL" != "$(command -v zsh)" ]; then
           export SHELL="$(command -v zsh)"
           exec zsh
         fi
-        echo "Entering Rust development environment..."
-        cargo fetch # Pre-fetch dependencies defined in Cargo.toml
+        cargo fetch
+        cargo build
       '';
     };
   });
