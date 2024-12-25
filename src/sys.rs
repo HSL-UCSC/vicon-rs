@@ -4,7 +4,9 @@
 
 use std::{thread, time::Duration};
 
-use crate::{HasViconHardware, RotationType, ViconError, ViconSdkStatus, ViconSubject};
+use crate::{
+    HasViconHardware, OutputRotation, RotationType, ViconError, ViconSdkStatus, ViconSubject,
+};
 use nalgebra::{Quaternion, UnitQuaternion, Vector3};
 
 include!(concat!(env!("OUT_DIR"), "/libvicon.rs"));
@@ -79,7 +81,7 @@ impl ViconSystem {
 impl HasViconHardware for ViconSystem {
     fn read_frame_subjects(
         &mut self,
-        rotation: RotationType,
+        rotation: OutputRotation,
     ) -> Result<Vec<ViconSubject>, ViconError> {
         // Get a new frame.
         let _: ViconError = unsafe { Client_GetFrame(self.vicon_handle).try_into()? };
@@ -167,8 +169,8 @@ impl HasViconHardware for ViconSystem {
             }
 
             // Get the segment's rotation.
-            let mut segment_rotation: ViconRotationType = match rotation {
-                RotationType::Quaternion(quaternion) => unsafe {
+            let segment_rotation: ViconRotationType = match rotation {
+                OutputRotation::Quaternion => unsafe {
                     let mut segment_rotation = COutput_GetSegmentGlobalRotationQuaternion {
                         Result: CResult_UnknownResult as i32,
                         Rotation: [0.0f64; 4],
@@ -182,7 +184,7 @@ impl HasViconHardware for ViconSystem {
                     );
                     ViconRotationType::Quaternion(segment_rotation)
                 },
-                RotationType::Euler(euler) => {
+                OutputRotation::Euler => {
                     let mut segment_rotation = COutput_GetSegmentGlobalRotationEulerXYZ {
                         Result: CResult_UnknownResult as i32,
                         Rotation: [0.0f64; 3],
@@ -203,7 +205,7 @@ impl HasViconHardware for ViconSystem {
             let _: ViconError = segment_rotation.result().try_into()?;
 
             // Skip occluded segments.
-            if segment_rotation.occulded() {
+            if segment_rotation.occluded() {
                 continue;
             }
 
@@ -251,7 +253,7 @@ pub enum ViconRotationType {
 }
 
 impl ViconRotationType {
-    pub fn occulded(&self) -> bool {
+    pub fn occluded(&self) -> bool {
         match self {
             ViconRotationType::Euler(euler) => euler.Occluded != 0,
             ViconRotationType::Quaternion(quaternion) => quaternion.Occluded != 0,

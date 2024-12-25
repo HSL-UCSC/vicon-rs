@@ -13,13 +13,13 @@ pub trait HasViconHardware {
     /// in the next available frame from the system.
     fn read_frame_subjects(
         &mut self,
-        rotation_type: RotationType,
+        rotation_type: OutputRotation,
     ) -> Result<Vec<ViconSubject>, ViconError>;
 }
 
 /// A single subject identified in a frame
 /// read by a thing that [`HasViconHardware`].
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ViconSubject {
     /// The subject's name.
     pub name: String,
@@ -35,6 +35,12 @@ pub struct ViconSubject {
 }
 
 #[derive(Debug)]
+pub enum OutputRotation {
+    Euler,
+    Quaternion,
+}
+
+#[derive(Debug, Clone)]
 pub enum RotationType {
     Euler(Vector3<f64>),
     Quaternion(UnitQuaternion<f64>),
