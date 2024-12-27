@@ -182,6 +182,13 @@ impl HasViconHardware for ViconSystem {
                         segment_name.as_ptr(),
                         &mut segment_rotation,
                     );
+                    // Reorder quaternion components to match nalgebra's convention.
+                    segment_rotation.Rotation = [
+                        segment_rotation.Rotation[3],
+                        segment_rotation.Rotation[0],
+                        segment_rotation.Rotation[1],
+                        segment_rotation.Rotation[2],
+                    ];
                     ViconRotationType::Quaternion(segment_rotation)
                 },
                 OutputRotation::Euler => {
