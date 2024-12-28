@@ -12,6 +12,7 @@ impl MockVicon {
                 name: "mob_6".to_string(),
                 origin: nalgebra::Vector3::new(0.0, 0.0, 0.0),
                 rotation: vicon_sys::RotationType::Quaternion(nalgebra::UnitQuaternion::identity()),
+                occluded: false,
             }],
         }
     }

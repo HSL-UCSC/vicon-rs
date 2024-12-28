@@ -32,6 +32,9 @@ pub struct ViconSubject {
     /// The subject's rotation (euler angles)
     /// in radians.
     pub rotation: RotationType,
+
+    /// Flag indicating whether the subject is occluded.
+    pub occluded: bool,
 }
 
 #[derive(Debug)]
