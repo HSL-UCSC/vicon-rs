@@ -163,11 +163,6 @@ impl HasViconHardware for ViconSystem {
             }
             let _: ViconError = segment_translation.Result.try_into()?;
 
-            // Skip occluded segments.
-            if segment_translation.Occluded != 0 {
-                continue;
-            }
-
             // Get the segment's rotation.
             let segment_rotation: ViconRotationType = match rotation {
                 OutputRotation::Quaternion => unsafe {
@@ -211,15 +206,10 @@ impl HasViconHardware for ViconSystem {
 
             let _: ViconError = segment_rotation.result().try_into()?;
 
-            // Skip occluded segments.
-            if segment_rotation.occluded() {
-                continue;
-            }
-
             subjects.push(ViconSubject::from_vicon_frame(
                 subject_name.to_str().unwrap().to_owned(),
                 segment_translation,
-                segment_rotation,
+                segment_rotation.clone(),
             )?);
         }
         Ok(subjects)
@@ -245,15 +235,17 @@ impl ViconSubject {
         Ok(Self {
             name,
             origin: Vector3::<f64>::new(origin_x, origin_y, origin_z),
-            rotation: RotationType::try_from(vicon_rotation).map_err(|e| {
+            rotation: RotationType::try_from(vicon_rotation.clone()).map_err(|e| {
                 ViconError::OtherError {
                     message: e.to_string(),
                 }
             })?,
+            occluded: vicon_rotation.occluded() || translation.Occluded != 0,
         })
     }
 }
 
+#[derive(Clone)]
 pub enum ViconRotationType {
     Euler(COutput_GetSegmentGlobalRotationEulerXYZ),
     Quaternion(COutput_GetSegmentGlobalRotationQuaternion),
