@@ -6,10 +6,7 @@ use vicon_sys::{sys::ViconSystem, HasViconHardware, OutputRotation, RotationType
 fn main() {
     let rec = rerun::RecordingStreamBuilder::new("rerun_example_minimal").spawn().unwrap();
 
-    println!("Hello, world!");
     let mut vicon = ViconSystem::new("localhost").unwrap();
-    println!("Initialized Vicon System");
-
     loop {
         let subjects = vicon
             .read_frame_subjects(OutputRotation::Quaternion)

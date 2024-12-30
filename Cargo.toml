@@ -14,7 +14,7 @@ channel = "1.83.0"
 
 [dependencies]
 nalgebra = "0.33.2"
-rerun = "0.20.0"
+rerun = "0.21.0"
 
 # Error handling.
 snafu = { version = "0.7.1", default-features = false }
