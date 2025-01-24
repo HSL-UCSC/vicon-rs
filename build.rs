@@ -15,7 +15,7 @@ impl bindgen::callbacks::ParseCallbacks for CommentSanitizer {
 
 fn main() {
     // Ask Cargo to link the library.
-    let lib_path = format!("{}\\vendor\\libvicon", env!("CARGO_MANIFEST_DIR"));
+    let lib_path = format!("{}/vendor/libvicon", env!("CARGO_MANIFEST_DIR"));
     println!("cargo:rustc-link-search=native={}", lib_path);
     println!("cargo:rustc-link-lib=ViconDataStreamSDK_C");
     // println!("cargo:rustc-link-search=native=vendor//winlibvicon");
@@ -23,7 +23,7 @@ fn main() {
 
     // Ask Cargo to invalidate the build cache
     // when the headers change.
-    println!("cargo:rerun-if-changed=vendor//winlibvicon//CClient.h");
+    println!("cargo:rerun-if-changed=vendor/winlibvicon/CClient.h");
 
     // Generate C bindings.
     let bindings = bindgen::Builder::default()
