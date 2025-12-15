@@ -46,7 +46,7 @@ build this crate by running:
 
 To _run_ this crate (or crates depending on it),
 you will need to ensure all the `.so` files
-in [`vendor/libvicon`](vendor/libvicon/) are
+in [`vendor/libvicon`](vendor/libvicon/) (or the Windows or Mac equivalent) are
 available on your `LD_LIBRARY_PATH`.
 
 ## License and Contributions
@@ -60,4 +60,3 @@ as published by the Free Software Foundation. Refer to
 The files within `vendor/` retain their original copyrights
 and licenses, and are included in this repository to simplify
 the build process for downstream users.
-
